@@ -61,6 +61,8 @@ type User_session_variables_struct struct {
 	Username string   `json:"username"`
 	Password string   `json:"password"`
 	Role     []string `json:"role"`
+	Dept     string   `json:"dept"`
+	Sub      string   `json:"sub"`
 }
 
 type AppConfig struct {
@@ -115,6 +117,7 @@ func main() {
 	router.POST("/registration", Registration)
 	router.POST("/login", Login)
 	router.POST("/login_as", LoginAs)
+	router.POST("/add_teacher", addTeacher)
 
 	// Start serving the application
 	err := router.Run(conf.Port)
@@ -216,7 +219,7 @@ func Registration(ctx *gin.Context) {
 	role := request.User_session_variables.Role[0]
 	fmt.Println("Role " + role)
 	fmt.Println(role == "Teacher")
-	strikeObj := strike.Create("started", "/")
+	strikeObj := strike.Create("started", baseAPI+"/add_teacher")
 	if role == "Teacher" {
 
 		quesObj1 := strikeObj.Question("username").
@@ -243,19 +246,6 @@ func Registration(ctx *gin.Context) {
 
 		quesObj4.Answer(true).TextInput("")
 
-		var teacher Teacher
-		tId, err := addATeacher(Teacher{
-			ID:       teacher.ID,
-			Name:     teacher.Name,
-			Password: teacher.Password,
-			Dept:     teacher.Dept,
-			Sub:      teacher.Sub,
-		})
-		if err != nil {
-			log.Fatal(err)
-		}
-		fmt.Printf("ID of added album: %v\n", tId)
-
 	}
 	if role == "Student" {
 
@@ -280,6 +270,26 @@ func Registration(ctx *gin.Context) {
 	}
 
 	ctx.JSON(200, strikeObj)
+}
+
+func addTeacher(ctx *gin.Context) {
+	var request Strike_Meta_Request_Structure
+
+	if err := ctx.BindJSON(&request); err != nil {
+		fmt.Println("Err")
+	}
+	// var teacher Teacher
+	tId, err := addATeacher(Teacher{
+		Name:     request.User_session_variables.Username,
+		Password: request.User_session_variables.Password,
+		Dept:     request.User_session_variables.Dept,
+		Sub:      request.User_session_variables.Sub,
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("ID of added album: %v\n", tId)
+
 }
 
 func LoginAs(ctx *gin.Context) {
