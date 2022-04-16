@@ -56,8 +56,9 @@ type GeoLocation_struct struct {
 }
 
 type User_session_variables_struct struct {
-	UserName string `json:"name"`
-	UserAge  string `json:"age"`
+	Username string   `json:"username"`
+	Password string   `json:"password"`
+	Role     []string `json:"role"`
 }
 
 type AppConfig struct {
@@ -75,8 +76,12 @@ func main() {
 	conf = &AppConfig{Port: ":7001", APIEp: ""}
 	// Init Routes
 	router := gin.Default()
-	router.POST("/", GettingStarted)
-	router.POST("/respondBack", RespondBack)
+	// router.POST("/", GettingStarted)
+	// router.POST("/respondBack", RespondBack)
+	router.POST("/register", Register)
+	router.POST("/registration", Registration)
+	router.POST("/login", Login)
+	router.POST("/login_as", LoginAs)
 
 	// Start serving the application
 	err := router.Run(conf.Port)
@@ -111,22 +116,118 @@ func GettingStarted(ctx *gin.Context) {
 	ctx.JSON(200, strikeObj)
 }
 
-func RespondBack(ctx *gin.Context) {
+// func RespondBack(ctx *gin.Context) {
+// 	var request Strike_Meta_Request_Structure
+// 	if err := ctx.BindJSON(&request); err != nil {
+// 		fmt.Println("Err")
+// 	}
+
+// 	// name := request.User_session_variables.UserName
+// 	// age := request.User_session_variables.UserAge
+
+// 	// Core Logic (Not giving any return API as this is the last response to the User.)
+// 	strikeObj := strike.Create("getting_started", "")
+
+// 	// Respond back
+// 	strikeObj.Question("").
+// 		QuestionText().
+// 		SetTextToQuestion("Hi! "+name+" You are the choosen few. Congratulation on such a feat at the age of "+age+".", "")
+
+// 	ctx.JSON(200, strikeObj)
+// }
+
+func Register(ctx *gin.Context) {
+	var request Strike_Meta_Request_Structure
+	if err := ctx.BindJSON(&request); err != nil {
+		fmt.Println("Err")
+	}
+	strikeObj := strike.Create("started", baseAPI+"/registration")
+	quesObj := strikeObj.Question("role").
+		QuestionText().
+		SetTextToQuestion("Register As", "desc")
+
+	quesObj.Answer(false).AnswerCardArray(strike.VERTICAL_ORIENTATION).
+		AnswerCard().SetHeaderToAnswer(1, strike.HALF_WIDTH).AddTextRowToAnswer(strike.H4, "Teacher", "#3b5375", true).
+		AnswerCard().SetHeaderToAnswer(1, strike.HALF_WIDTH).AddTextRowToAnswer(strike.H4, "Student", "#3b5375", true).
+		AnswerCard().SetHeaderToAnswer(1, strike.HALF_WIDTH).AddTextRowToAnswer(strike.H4, "Admin", "#3b5375", true)
+
+	ctx.JSON(200, strikeObj)
+}
+
+func Login(ctx *gin.Context) {
+	var request Strike_Meta_Request_Structure
+	if err := ctx.BindJSON(&request); err != nil {
+		fmt.Println("Err")
+	}
+	strikeObj := strike.Create("started", baseAPI+"/login_as")
+	quesObj := strikeObj.Question("role").
+		QuestionText().
+		SetTextToQuestion("Login As", "desc")
+
+	quesObj.Answer(false).AnswerCardArray(strike.VERTICAL_ORIENTATION).
+		AnswerCard().SetHeaderToAnswer(1, strike.HALF_WIDTH).AddTextRowToAnswer(strike.H4, "Teacher", "#3b5375", true).
+		AnswerCard().SetHeaderToAnswer(1, strike.HALF_WIDTH).AddTextRowToAnswer(strike.H4, "Student", "#3b5375", true).
+		AnswerCard().SetHeaderToAnswer(1, strike.HALF_WIDTH).AddTextRowToAnswer(strike.H4, "Admin", "#3b5375", true)
+
+	ctx.JSON(200, strikeObj)
+
+}
+
+func Registration(ctx *gin.Context) {
 	var request Strike_Meta_Request_Structure
 	if err := ctx.BindJSON(&request); err != nil {
 		fmt.Println("Err")
 	}
 
-	name := request.User_session_variables.UserName
-	age := request.User_session_variables.UserAge
+	role := request.User_session_variables.Role[0]
+	fmt.Println("Role " + role)
 
-	// Core Logic (Not giving any return API as this is the last response to the User.)
-	strikeObj := strike.Create("getting_started", "")
+	strikeObj := strike.Create("started", "")
+	if role == "Teacher" || role == "Admin" {
 
-	// Respond back
-	strikeObj.Question("").
-		QuestionText().
-		SetTextToQuestion("Hi! "+name+" You are the choosen few. Congratulation on such a feat at the age of "+age+".", "")
+		quesObj1 := strikeObj.Question("username").
+			QuestionText().
+			SetTextToQuestion("Please provide Your Username", "desc")
+
+		quesObj1.Answer(true).TextInput("")
+
+		quesObj2 := strikeObj.Question("password").
+			QuestionText().
+			SetTextToQuestion("Please provide Your Password", "desc")
+
+		quesObj2.Answer(true).TextInput("")
+
+	}
+	if role == "Student" {
+
+		quesObj1 := strikeObj.Question("username").
+			QuestionText().
+			SetTextToQuestion("Please provide Your Username", "desc")
+
+		quesObj1.Answer(true).TextInput("")
+
+		quesObj2 := strikeObj.Question("password").
+			QuestionText().
+			SetTextToQuestion("Please provide Your Password", "desc")
+
+		quesObj2.Answer(true).TextInput("")
+		fmt.Println("Role " + role)
+
+		quesObj3 := strikeObj.Question("enrollment").
+			QuestionText().
+			SetTextToQuestion("Enter Your Enrollment Number", "desc")
+		quesObj3.Answer(true).TextInput("")
+
+	}
 
 	ctx.JSON(200, strikeObj)
 }
+
+func LoginAs(ctx *gin.Context) {
+	var request Strike_Meta_Request_Structure
+	if err := ctx.BindJSON(&request); err != nil {
+		fmt.Println("Err")
+	}
+
+}
+
