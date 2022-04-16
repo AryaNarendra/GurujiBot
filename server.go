@@ -1,10 +1,12 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
 	"log"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-sql-driver/mysql"
 	"github.com/strike-official/go-sdk/strike"
 )
 
@@ -66,13 +68,43 @@ type AppConfig struct {
 	APIEp string `json:"apiep"`
 }
 
+type Teacher struct {
+	ID       int64  `json:"teacher_id"`
+	Name     string `json:"username"`
+	Password string `json:"password"`
+	Dept     string `json:"dept"`
+	Sub      string `json:"sub"`
+}
+
 var conf *AppConfig
 
 // This will be your API base link. Below we have used ngrok to make our bot public fast.
 //var baseAPI = "http://8e28-2405-201-a407-908e-4c-9fe9-ad8b-43c8.ngrok.io"
 var baseAPI = "https://7b2f-27-56-240-216.in.ngrok.io"
 
+var db *sql.DB
+
 func main() {
+	cfg := mysql.Config{
+		User:   "admin",
+		Passwd: "haCk!567",
+		Net:    "tcp",
+		Addr:   "first-hackathon.cepuilwl2joi.us-east-2.rds.amazonaws.com:3306",
+		DBName: "devengers",
+	}
+	// Get a database handle.
+	var err1 error
+	db, err1 = sql.Open("mysql", cfg.FormatDSN())
+	if err1 != nil {
+		log.Fatal(err1)
+	}
+
+	pingErr := db.Ping()
+	if pingErr != nil {
+		log.Fatal(pingErr)
+	}
+	fmt.Println("Connected!")
+
 	conf = &AppConfig{Port: ":7001", APIEp: ""}
 	// Init Routes
 	router := gin.Default()
@@ -183,7 +215,7 @@ func Registration(ctx *gin.Context) {
 	fmt.Println("Role " + role)
 
 	strikeObj := strike.Create("started", "")
-	if role == "Teacher" || role == "Admin" {
+	if role == "Teacher" {
 
 		quesObj1 := strikeObj.Question("username").
 			QuestionText().
@@ -196,6 +228,18 @@ func Registration(ctx *gin.Context) {
 			SetTextToQuestion("Please provide Your Password", "desc")
 
 		quesObj2.Answer(true).TextInput("")
+
+		quesObj3 := strikeObj.Question("dept").
+			QuestionText().
+			SetTextToQuestion("Name your Department", "desc")
+
+		quesObj3.Answer(true).TextInput("")
+
+		quesObj4 := strikeObj.Question("sub").
+			QuestionText().
+			SetTextToQuestion("What are you teaching?", "desc")
+
+		quesObj4.Answer(true).TextInput("")
 
 	}
 	if role == "Student" {
@@ -220,6 +264,17 @@ func Registration(ctx *gin.Context) {
 
 	}
 
+	tId, err := addATeacher(Teacher{
+		Name:  request.Teacher.Name,
+		Password:request.Teacher.Password,
+		Dept:  request.Teacher.Dept,
+		Sub :request.Teacher.Sub	
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("ID of added album: %v\n", tId)
+
 	ctx.JSON(200, strikeObj)
 }
 
@@ -231,3 +286,14 @@ func LoginAs(ctx *gin.Context) {
 
 }
 
+func addATeacher(tch Teacher) (int64, error) {
+	result, err := db.Exec("INSERT INTO Teachers (name, password, department, subject) VALUES (?, ?, ?, ?)", tch.Name, tch.Password, tch.Dept, tch.Sub)
+	if err != nil {
+		return 0, fmt.Errorf("addATeacher: %v", err)
+	}
+	id, err := result.LastInsertId()
+	if err != nil {
+		return 0, fmt.Errorf("addATeacher: %v", err)
+	}
+	return id, nil
+}
