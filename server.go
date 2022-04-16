@@ -58,11 +58,16 @@ type GeoLocation_struct struct {
 }
 
 type User_session_variables_struct struct {
-	Username string   `json:"username"`
-	Password string   `json:"password"`
-	Role     []string `json:"role"`
-	Dept     string   `json:"dept"`
-	Sub      string   `json:"sub"`
+	Username   string   `json:"username"`
+	Password   string   `json:"password"`
+	Role       []string `json:"role"`
+	Dept       string   `json:"dept"`
+	Sub        string   `json:"sub"`
+	Enrollment string   `json:"enrollment"`
+	Semester   string   `json:"semester"`
+	Branch     string   `json:"branch"`
+	Email      string   `json:"email"`
+	Phone      int64    `json:"phone"`
 }
 
 type AppConfig struct {
@@ -76,6 +81,21 @@ type Teacher struct {
 	Password string `json:"password"`
 	Dept     string `json:"dept"`
 	Sub      string `json:"sub"`
+}
+
+type Student struct {
+	Name       string `json:"username"`
+	Password   string `json:"password"`
+	Enrollment string `json:"enrollment"`
+	Semester   string `json:"semester"`
+	Branch     string `json:"branch"`
+	Email      string `json:"email"`
+	Phone      int64  `json:"phone"`
+}
+
+type Admin struct {
+	Name     string `json:"username"`
+	Password string `json:"password"`
 }
 
 var conf *AppConfig
@@ -111,13 +131,11 @@ func main() {
 	conf = &AppConfig{Port: ":7001", APIEp: ""}
 	// Init Routes
 	router := gin.Default()
-	// router.POST("/", GettingStarted)
-	// router.POST("/respondBack", RespondBack)
 	router.POST("/register", Register)
 	router.POST("/registration", Registration)
 	router.POST("/login", Login)
 	router.POST("/login_as", LoginAs)
-	router.POST("/add_teacher", addTeacher)
+	router.POST("/add_user", addUser)
 
 	// Start serving the application
 	err := router.Run(conf.Port)
@@ -126,51 +144,6 @@ func main() {
 	}
 
 }
-
-func GettingStarted(ctx *gin.Context) {
-	var request Strike_Meta_Request_Structure
-	if err := ctx.BindJSON(&request); err != nil {
-		fmt.Println("Err")
-	}
-	// Core Logic
-	strikeObj := strike.Create("getting_started", baseAPI+"/respondBack")
-
-	// First Question: Whats your name?
-	quesObj1 := strikeObj.Question("name").
-		QuestionText().
-		SetTextToQuestion("Hi! What is your name? Here to help, dude !!", "")
-	// Prompt the user to give his answer as a text.
-	quesObj1.Answer(true).TextInput("")
-
-	// Second Question: Whats your age?
-	quesObj2 := strikeObj.Question("age").
-		QuestionText().
-		SetTextToQuestion("What is you age", "desc")
-	// Prompt the user to give his answer as a number.
-	quesObj2.Answer(true).NumberInput("")
-
-	ctx.JSON(200, strikeObj)
-}
-
-// func RespondBack(ctx *gin.Context) {
-// 	var request Strike_Meta_Request_Structure
-// 	if err := ctx.BindJSON(&request); err != nil {
-// 		fmt.Println("Err")
-// 	}
-
-// 	// name := request.User_session_variables.UserName
-// 	// age := request.User_session_variables.UserAge
-
-// 	// Core Logic (Not giving any return API as this is the last response to the User.)
-// 	strikeObj := strike.Create("getting_started", "")
-
-// 	// Respond back
-// 	strikeObj.Question("").
-// 		QuestionText().
-// 		SetTextToQuestion("Hi! "+name+" You are the choosen few. Congratulation on such a feat at the age of "+age+".", "")
-
-// 	ctx.JSON(200, strikeObj)
-// }
 
 func Register(ctx *gin.Context) {
 	var request Strike_Meta_Request_Structure
@@ -218,8 +191,7 @@ func Registration(ctx *gin.Context) {
 
 	role := request.User_session_variables.Role[0]
 	fmt.Println("Role " + role)
-	fmt.Println(role == "Teacher")
-	strikeObj := strike.Create("started", baseAPI+"/add_teacher")
+	strikeObj := strike.Create("started", baseAPI+"/add_user?role="+role)
 	if role == "Teacher" {
 
 		quesObj1 := strikeObj.Question("username").
@@ -260,35 +232,97 @@ func Registration(ctx *gin.Context) {
 			SetTextToQuestion("Please provide Your Password", "desc")
 
 		quesObj2.Answer(true).TextInput("")
-		fmt.Println("Role " + role)
 
 		quesObj3 := strikeObj.Question("enrollment").
 			QuestionText().
 			SetTextToQuestion("Enter Your Enrollment Number", "desc")
 		quesObj3.Answer(true).TextInput("")
 
+		quesObj4 := strikeObj.Question("semester").
+			QuestionText().
+			SetTextToQuestion("Enter Your Semester", "desc")
+		quesObj4.Answer(true).TextInput("")
+
+		quesObj5 := strikeObj.Question("branch").
+			QuestionText().
+			SetTextToQuestion("Enter Your Branch", "desc")
+		quesObj5.Answer(true).TextInput("")
+
+		quesObj6 := strikeObj.Question("email").
+			QuestionText().
+			SetTextToQuestion("Enter Your Email ID", "desc")
+		quesObj6.Answer(true).TextInput("")
+
+		quesObj7 := strikeObj.Question("phone").
+			QuestionText().
+			SetTextToQuestion("Enter Your Phone Number", "desc")
+		quesObj7.Answer(true).TextInput("")
+
+	}
+	if role == "Admin" {
+
+		quesObj8 := strikeObj.Question("username").
+			QuestionText().
+			SetTextToQuestion("Please provide Your Username", "desc")
+
+		quesObj8.Answer(true).TextInput("")
+
+		quesObj9 := strikeObj.Question("password").
+			QuestionText().
+			SetTextToQuestion("Please provide Your Password", "desc")
+
+		quesObj9.Answer(true).TextInput("")
 	}
 
 	ctx.JSON(200, strikeObj)
 }
 
-func addTeacher(ctx *gin.Context) {
+func addUser(ctx *gin.Context) {
 	var request Strike_Meta_Request_Structure
 
 	if err := ctx.BindJSON(&request); err != nil {
 		fmt.Println("Err")
 	}
-	// var teacher Teacher
-	tId, err := addATeacher(Teacher{
-		Name:     request.User_session_variables.Username,
-		Password: request.User_session_variables.Password,
-		Dept:     request.User_session_variables.Dept,
-		Sub:      request.User_session_variables.Sub,
-	})
-	if err != nil {
-		log.Fatal(err)
+	role := ctx.Query("role")
+	fmt.Println("Role " + role)
+	switch role {
+	case "Teacher":
+		tId, err := addTeacher(Teacher{
+			Name:     request.User_session_variables.Username,
+			Password: request.User_session_variables.Password,
+			Dept:     request.User_session_variables.Dept,
+			Sub:      request.User_session_variables.Sub,
+		})
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Printf("ID of added album: %v\n", tId)
+
+	case "Admin":
+		tId, err := addAdmin(Admin{
+			Name:     request.User_session_variables.Username,
+			Password: request.User_session_variables.Password,
+		})
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Printf("ID of added album: %v\n", tId)
+
+	case "Student":
+		tId, err := addStudent(Student{
+			Name:       request.User_session_variables.Username,
+			Password:   request.User_session_variables.Password,
+			Enrollment: request.User_session_variables.Enrollment,
+			Semester:   request.User_session_variables.Semester,
+			Branch:     request.User_session_variables.Branch,
+			Email:      request.User_session_variables.Email,
+			Phone:      request.User_session_variables.Phone,
+		})
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Printf("ID of added album: %v\n", tId)
 	}
-	fmt.Printf("ID of added album: %v\n", tId)
 
 }
 
@@ -300,8 +334,33 @@ func LoginAs(ctx *gin.Context) {
 
 }
 
-func addATeacher(tch Teacher) (int64, error) {
+func addTeacher(tch Teacher) (int64, error) {
 	result, err := db.Exec("INSERT INTO Teachers (name, password, department, subject) VALUES (?, ?, ?, ?)", tch.Name, tch.Password, tch.Dept, tch.Sub)
+	if err != nil {
+		return 0, fmt.Errorf("addATeacher: %v", err)
+	}
+	id, err := result.LastInsertId()
+	if err != nil {
+		return 0, fmt.Errorf("addATeacher: %v", err)
+	}
+	return id, nil
+}
+
+func addStudent(st Student) (int64, error) {
+	result, err := db.Exec("INSERT INTO Students (enrollment_no, name, password, semester, branch, email, phone) VALUES (?, ?, ?, ?, ?, ?, ?)",
+		st.Enrollment, st.Name, st.Password, st.Semester, st.Branch, st.Email, st.Phone)
+	if err != nil {
+		return 0, fmt.Errorf("addATeacher: %v", err)
+	}
+	id, err := result.LastInsertId()
+	if err != nil {
+		return 0, fmt.Errorf("addATeacher: %v", err)
+	}
+	return id, nil
+}
+
+func addAdmin(adm Admin) (int64, error) {
+	result, err := db.Exec("INSERT INTO Admins (name, password) VALUES (?, ?)", adm.Name, adm.Password)
 	if err != nil {
 		return 0, fmt.Errorf("addATeacher: %v", err)
 	}
