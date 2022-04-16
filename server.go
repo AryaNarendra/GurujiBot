@@ -97,7 +97,7 @@ func GettingStarted(ctx *gin.Context) {
 	// First Question: Whats your name?
 	quesObj1 := strikeObj.Question("name").
 		QuestionText().
-		SetTextToQuestion("Hi! What is your name? Here to help !!", "")
+		SetTextToQuestion("Hi! What is your name? Here to help, dude !!", "")
 	// Prompt the user to give his answer as a text.
 	quesObj1.Answer(true).TextInput("")
 
