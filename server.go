@@ -86,11 +86,12 @@ var db *sql.DB
 
 func main() {
 	cfg := mysql.Config{
-		User:   "admin",
-		Passwd: "haCk!567",
-		Net:    "tcp",
-		Addr:   "first-hackathon.cepuilwl2joi.us-east-2.rds.amazonaws.com:3306",
-		DBName: "devengers",
+		User:                 "admin",
+		Passwd:               "haCk!567",
+		Net:                  "tcp",
+		Addr:                 "first-hackathon.cepuilwl2joi.us-east-2.rds.amazonaws.com:3306",
+		DBName:               "devengers",
+		AllowNativePasswords: true,
 	}
 	// Get a database handle.
 	var err1 error
@@ -207,14 +208,15 @@ func Login(ctx *gin.Context) {
 
 func Registration(ctx *gin.Context) {
 	var request Strike_Meta_Request_Structure
+
 	if err := ctx.BindJSON(&request); err != nil {
 		fmt.Println("Err")
 	}
 
 	role := request.User_session_variables.Role[0]
 	fmt.Println("Role " + role)
-
-	strikeObj := strike.Create("started", "")
+	fmt.Println(role == "Teacher")
+	strikeObj := strike.Create("started", "/")
 	if role == "Teacher" {
 
 		quesObj1 := strikeObj.Question("username").
@@ -241,6 +243,19 @@ func Registration(ctx *gin.Context) {
 
 		quesObj4.Answer(true).TextInput("")
 
+		var teacher Teacher
+		tId, err := addATeacher(Teacher{
+			ID:       teacher.ID,
+			Name:     teacher.Name,
+			Password: teacher.Password,
+			Dept:     teacher.Dept,
+			Sub:      teacher.Sub,
+		})
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Printf("ID of added album: %v\n", tId)
+
 	}
 	if role == "Student" {
 
@@ -263,17 +278,6 @@ func Registration(ctx *gin.Context) {
 		quesObj3.Answer(true).TextInput("")
 
 	}
-
-	tId, err := addATeacher(Teacher{
-		Name:  request.Teacher.Name,
-		Password:request.Teacher.Password,
-		Dept:  request.Teacher.Dept,
-		Sub :request.Teacher.Sub	
-	})
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Printf("ID of added album: %v\n", tId)
 
 	ctx.JSON(200, strikeObj)
 }
