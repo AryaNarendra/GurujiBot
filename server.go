@@ -133,7 +133,7 @@ func main() {
 	conf = &AppConfig{Port: ":7001", APIEp: ""}
 	// Init Routes
 	router := gin.Default()
-	router.POST("/", Home)
+	// router.POST("/", Home)
 	router.POST("/register", Register)
 	router.POST("/registration", Registration)
 	router.POST("/login", Login)
@@ -148,34 +148,35 @@ func main() {
 	}
 
 }
-func Home(ctx *gin.Context) {
-	var request Strike_Meta_Request_Structure
-	if err := ctx.BindJSON(&request); err != nil {
-		fmt.Println("Err")
-	}
-	strikeObj := strike.Create("started", baseAPI+"/getHome")
-	quesObj := strikeObj.Question("welcome").
-		QuestionText().
-		SetTextToQuestion("Welcome, Please select one option", "desc")
-	quesObj.Answer(false).AnswerCardArray(strike.VERTICAL_ORIENTATION).
-		AnswerCard().SetHeaderToAnswer(1, strike.HALF_WIDTH).AddTextRowToAnswer(strike.H4, "Login", "#008f5a", false).
-		AnswerCard().SetHeaderToAnswer(1, strike.HALF_WIDTH).AddTextRowToAnswer(strike.H4, "Register", "#008f5a", false)
 
-}
-func getHome(ctx *gin.Context) {
-	var request Strike_Meta_Request_Structure
-	if err := ctx.BindJSON(&request); err != nil {
-		fmt.Println("Err")
-	}
-	welcome := request.User_session_variables.Welcome[0]
-	strikeObj := strike.Create("started", baseAPI+"/"+welcome)
-	quesObj := strikeObj.Question("welcome").
-		QuestionText().
-		SetTextToQuestion("Welcome, Please select one option", "desc")
-	quesObj.Answer(false).AnswerCardArray(strike.VERTICAL_ORIENTATION).
-		AnswerCard().SetHeaderToAnswer(1, strike.HALF_WIDTH).AddTextRowToAnswer(strike.H4, "continue", "#008f5a", false)
+// func Home(ctx *gin.Context) {
+// 	var request Strike_Meta_Request_Structure
+// 	if err := ctx.BindJSON(&request); err != nil {
+// 		fmt.Println("Err")
+// 	}
+// 	strikeObj := strike.Create("started", baseAPI+"/getHome")
+// 	quesObj := strikeObj.Question("welcome").
+// 		QuestionText().
+// 		SetTextToQuestion("Welcome, Please select one option", "desc")
+// 	quesObj.Answer(false).AnswerCardArray(strike.VERTICAL_ORIENTATION).
+// 		AnswerCard().SetHeaderToAnswer(1, strike.HALF_WIDTH).AddTextRowToAnswer(strike.H4, "Login", "#008f5a", false).
+// 		AnswerCard().SetHeaderToAnswer(1, strike.HALF_WIDTH).AddTextRowToAnswer(strike.H4, "Register", "#008f5a", false)
 
-}
+// }
+// func getHome(ctx *gin.Context) {
+// 	var request Strike_Meta_Request_Structure
+// 	if err := ctx.BindJSON(&request); err != nil {
+// 		fmt.Println("Err")
+// 	}
+// 	welcome := request.User_session_variables.Welcome[0]
+// 	strikeObj := strike.Create("started", baseAPI+"/"+welcome)
+// 	quesObj := strikeObj.Question("welcome").
+// 		QuestionText().
+// 		SetTextToQuestion("Welcome, Please select one option", "desc")
+// 	quesObj.Answer(false).AnswerCardArray(strike.VERTICAL_ORIENTATION).
+// 		AnswerCard().SetHeaderToAnswer(1, strike.HALF_WIDTH).AddTextRowToAnswer(strike.H4, "continue", "#008f5a", false)
+
+// }
 func Register(ctx *gin.Context) {
 	var request Strike_Meta_Request_Structure
 	if err := ctx.BindJSON(&request); err != nil {
@@ -196,11 +197,13 @@ func Register(ctx *gin.Context) {
 
 func Login(ctx *gin.Context) {
 	var request Strike_Meta_Request_Structure
+
 	if err := ctx.BindJSON(&request); err != nil {
 		fmt.Println("Err")
 	}
+
 	role := request.User_session_variables.Role[0]
-	fmt.Println("Role" + role)
+
 	strikeObj := strike.Create("started", baseAPI+"/login_as?role="+role)
 	quesObj := strikeObj.Question("role").
 		QuestionText().
@@ -256,7 +259,7 @@ func LoginUser(ctx *gin.Context) {
 		})
 		if err != nil {
 			erro = err
-			loginError(err)
+			// loginError(err)
 			log.Fatal(err)
 		}
 		fmt.Println(userRecord)
@@ -267,7 +270,7 @@ func LoginUser(ctx *gin.Context) {
 		})
 		if err != nil {
 			erro = err
-			loginError(err)
+			// loginError(err)
 			log.Fatal(err)
 		}
 		fmt.Println(userRecord)
@@ -278,7 +281,7 @@ func LoginUser(ctx *gin.Context) {
 		})
 		if err != nil {
 			erro = err
-			loginError(err)
+			// loginError(err)
 			log.Fatal(err)
 		}
 		fmt.Println(userRecord)
@@ -335,16 +338,16 @@ func loginAdmin(adm Admin) (Admin, error) {
 	return abc, nil
 }
 
-func loginError(err error) {
+// func loginError(err error) {
 
-	strikeObj := strike.Create("started", baseAPI+"/")
-	quesObj1 := strikeObj.Question("username").
-		QuestionText().
-		SetTextToQuestion("Invalid Username/Password, Please Try Again!!", "desc")
+// 	strikeObj := strike.Create("started", baseAPI+"/")
+// 	quesObj1 := strikeObj.Question("username").
+// 		QuestionText().
+// 		SetTextToQuestion("Invalid Username/Password, Please Try Again!!", "desc")
 
-	quesObj1.Answer(false).AnswerCardArray(strike.VERTICAL_ORIENTATION).
-		AnswerCard().SetHeaderToAnswer(1, strike.HALF_WIDTH).AddTextRowToAnswer(strike.H4, "↩ Back to Home", "#008f5a", false)
-}
+// 	quesObj1.Answer(false).AnswerCardArray(strike.VERTICAL_ORIENTATION).
+// 		AnswerCard().SetHeaderToAnswer(1, strike.HALF_WIDTH).AddTextRowToAnswer(strike.H4, "↩ Back to Home", "#008f5a", false)
+// }
 
 func Registration(ctx *gin.Context) {
 	var request Strike_Meta_Request_Structure
