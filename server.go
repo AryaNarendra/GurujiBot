@@ -202,9 +202,9 @@ func Login(ctx *gin.Context) {
 		fmt.Println("Err")
 	}
 
-	role := request.User_session_variables.Role[0]
+	// role := request.User_session_variables.Role[0]
 
-	strikeObj := strike.Create("started", baseAPI+"/login_as?role="+role)
+	strikeObj := strike.Create("started", baseAPI+"/login_as")
 	quesObj := strikeObj.Question("role").
 		QuestionText().
 		SetTextToQuestion("Login As", "desc")
@@ -223,8 +223,8 @@ func LoginAs(ctx *gin.Context) {
 	if err := ctx.BindJSON(&request); err != nil {
 		fmt.Println("Err")
 	}
-	role := ctx.Query("role")
-	fmt.Println("Login Role" + role)
+	role := request.User_session_variables.Role[0]
+	// fmt.Println("Login Role" + role)
 	strikeObj := strike.Create("started", baseAPI+"/login_user?role="+role)
 
 	quesObj1 := strikeObj.Question("username").
