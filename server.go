@@ -104,7 +104,7 @@ var conf *AppConfig
 
 // This will be your API base link. Below we have used ngrok to make our bot public fast.
 //var baseAPI = "http://8e28-2405-201-a407-908e-4c-9fe9-ad8b-43c8.ngrok.io"
-var baseAPI = "https://7b2f-27-56-240-216.in.ngrok.io"
+var baseAPI = "https://5afc-2405-201-3016-e098-394c-e482-8cdd-580d.in.ngrok.io"
 
 var db *sql.DB
 
@@ -169,9 +169,11 @@ func getHome(ctx *gin.Context) {
 	}
 	welcome := request.User_session_variables.Welcome[0]
 	strikeObj := strike.Create("started", baseAPI+"/"+welcome)
-	// quesObj := strikeObj.Question("welcome").
-	// 	QuestionText().
-	// 	SetTextToQuestion("Welcome, Please select one option", "desc")
+	quesObj := strikeObj.Question("welcome").
+		QuestionText().
+		SetTextToQuestion("Welcome, Please select one option", "desc")
+	quesObj.Answer(false).AnswerCardArray(strike.VERTICAL_ORIENTATION).
+		AnswerCard().SetHeaderToAnswer(1, strike.HALF_WIDTH).AddTextRowToAnswer(strike.H4, "continue", "#008f5a", false)
 
 }
 func Register(ctx *gin.Context) {
@@ -245,6 +247,7 @@ func LoginUser(ctx *gin.Context) {
 	}
 	role := ctx.Query("role")
 	var erro error
+
 	switch role {
 	case "Teacher":
 		userRecord, err := loginTeacher(Teacher{
@@ -256,6 +259,7 @@ func LoginUser(ctx *gin.Context) {
 			loginError(err)
 			log.Fatal(err)
 		}
+		fmt.Println(userRecord)
 	case "Student":
 		userRecord, err := loginStudent(Student{
 			Name:     request.User_session_variables.Username,
@@ -266,6 +270,7 @@ func LoginUser(ctx *gin.Context) {
 			loginError(err)
 			log.Fatal(err)
 		}
+		fmt.Println(userRecord)
 	case "Admin":
 		userRecord, err := loginAdmin(Admin{
 			Name:     request.User_session_variables.Username,
@@ -276,8 +281,10 @@ func LoginUser(ctx *gin.Context) {
 			loginError(err)
 			log.Fatal(err)
 		}
+		fmt.Println(userRecord)
 	}
 	if erro == nil {
+
 		strikeObj := strike.Create("started", baseAPI+"")
 		quesObj1 := strikeObj.Question("username").
 			QuestionText().
